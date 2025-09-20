@@ -1,0 +1,16 @@
+{
+    "name": "basic-workflow",
+    "description": "This is a basic workflow",
+    "tasks": [
+      {
+        "name": "A",
+        "description": "This task will write data to a file on Local FileSystem",
+        "parameters": {
+            "Operation": "write",
+            "path": "result.txt",
+            "Data": "Writing this data with FlowSynx.",
+            "overwrite": true
+        }
+      }
+    ]
+  }
