@@ -1,14 +1,8 @@
 # JSON-Based DAG Workflow Definition Schema
 
-*A Technical Specification and Usage Guide*
-
-------------------------------------------------------------------------
-
 ## Overview
 
 This schema defines a **Directed Acyclic Graph (DAG)** workflow as a single JSON object. The workflow consists of **tasks** (graph nodes) connected by **dependencies** (edges). The JSON document specifies **global workflow configuration**, **task-level settings**, **error-handling strategies**, and optional **manual approvals**.
-
-------------------------------------------------------------------------
 
 ## Top-Level Structure
 
@@ -16,10 +10,10 @@ A workflow definition is a single JSON object with three main parts:
 
 ```jsonc
 {
-  "Name": "...",          // required
-  "Description": "...",   // optional
-  "Configuration": { ... }, // optional global settings
-  "Tasks": [ ... ]        // required list of task objects
+  "Name": "...",              // required
+  "Description": "...",       // optional
+  "Configuration": { ... },   // optional global settings
+  "Tasks": [ ... ]            // required list of task objects
 }
 ```
 
@@ -85,6 +79,12 @@ Controls what happens when a task fails.
 | `MaxDelay`           | integer | 10000   | Maximum allowed delay (ms) between retries.                |
 | `BackoffCoefficient` | number  | 2.0     | Growth factor for linear or exponential backoff.           |
 
+#### BackoffStrategy Enum
+
+- **Fixed**: Always wait InitialDelay between retries.
+- **Linear**: Increase delay linearly with each retry.
+- **Exponential**: Exponentially increase delay using BackoffCoefficient.
+- **Jitter**: Add randomness to delay to avoid retry storms.
 
 ## Task Array
 The `Tasks` array describes every node of the DAG.
@@ -153,8 +153,6 @@ Used purely for visualization.
 | X   | number | Horizontal coordinate (finite number) |
 | Y   | number | Vertical coordinate (finite number)   |
 
-------------------------------------------------------------------------
-
 ## Execution Semantics
 
 1.  **DAG Dependency**: Each task runs only when every name listed in its `Dependencies` array has successfully completed (or been skipped based on error strategy).
@@ -163,8 +161,6 @@ Used purely for visualization.
     -   A task's own `ErrorHandling` (if present) overrides the global setting.
     -   The engine applies retry logic when `Strategy` is `"Retry"`.
 4.  **Manual Approval**: When `ManualApproval.Enabled` is true, execution pauses until an approver responds or a timeout triggers the `DefaultAction`.
-
-------------------------------------------------------------------------
 
 ## Example JSON Workflow
 
@@ -189,44 +185,51 @@ Used purely for visualization.
   "Tasks": [
     {
       "Name": "ExtractData",
-      "Type": "Plugin.DataExtractor",
-      "Parameters": { "source": "s3://bucket/raw" },
-      "Output": "extractedData",
+      "Type": {
+        "plugin": "FlowSynx.Cloud.Amazon.S3",
+        "version": "1.1.0",
+        "Ssecifications": {
+          "AccessKey": "AKIAEXAMPLE123456",
+          "SecretKey": "abc123secretkeyexample",
+          "Region": "us-east-1",
+          "Bucket": "my-flowsynx-bucket",
+          "SessionToken": "FQoGZXIvYXdzEJr..."
+        }
+      },
+      "Parameters": {
+        "Operation": "list",
+        "Path": "documents/report.json",
+        "Recurse": true,
+        "CaseSensitive": false,
+        "MaxResults": 10
+      },
       "Position": { "X": 100, "Y": 50 }
     },
     {
-      "Name": "ValidateData",
-      "Type": "Plugin.DataValidator",
-      "Dependencies": ["ExtractData"],
-      "Parameters": { "schema": "customer-schema.json" },
-      "ManualApproval": {
-        "Enabled": true,
-        "Approvers": ["data.lead@example.com"],
-        "Instructions": "Review validation report before proceeding",
-        "DefaultAction": "abort"
+      "Name": "ToCSV",
+      "Type": {
+        "plugin": "FlowSynx.Data.Csv",
+        "version": "1.2.0"
       },
+      "Dependencies": ["ExtractData"],
+      "Parameters": { 
+        "Operation": "read",
+        "Delimiter": ","
+       },
       "Position": { "X": 300, "Y": 50 }
     },
     {
-      "Name": "LoadData",
-      "Type": "Plugin.DataLoader",
-      "Dependencies": ["ValidateData"],
-      "Parameters": { "destination": "postgres://etl-db/customers" },
+      "Name": "SaveData",
+      "Type": "",
+      "Dependencies": ["ToCSV"],
+      "Parameters": { 
+          "Operation": "write",
+          "path": "result.txt",
+          "Data": "$[Outputs('ToCSV')]",
+          "overwrite": true
+       },
       "Position": { "X": 500, "Y": 50 }
     }
   ]
 }
 ```
-
-------------------------------------------------------------------------
-
-## Best Practices
-
--   **Validate** against a JSON Schema to ensure correct data types and required fields.
--   **Version Control**: Add external metadata (e.g., `"SchemaVersion"`) to handle future schema changes.
--   **Security**: Ensure `Approvers` map to real authenticated users or roles.
--   **Separation of Logic**: Keep `Type` and `Parameters` abstract enough to allow multiple execution engines.
-
-------------------------------------------------------------------------
-
-This JSON specification provides a **self-contained, engine-agnostic** format for describing DAG workflows, enabling interoperability across tools, editors, and execution platforms.
