@@ -167,7 +167,7 @@ Used purely for visualization.
 ```json
 {
   "Name": "DataProcessingWorkflow",
-  "Description": "ETL pipeline with validation and approval",
+  "Description": "Pipeline with loading data from Amazon S3, convert it to CSV and then store it on Local FileSystem",
   "Configuration": {
     "DegreeOfParallelism": 4,
     "Timeout": 600000,
@@ -184,7 +184,7 @@ Used purely for visualization.
   },
   "Tasks": [
     {
-      "Name": "ExtractData",
+      "Name": "AmazonFilesList",
       "Type": {
         "plugin": "FlowSynx.Cloud.Amazon.S3",
         "version": "1.1.0",
@@ -211,7 +211,7 @@ Used purely for visualization.
         "plugin": "FlowSynx.Data.Csv",
         "version": "1.2.0"
       },
-      "Dependencies": ["ExtractData"],
+      "Dependencies": ["AmazonFilesList"],
       "Parameters": { 
         "Operation": "read",
         "Delimiter": ","
