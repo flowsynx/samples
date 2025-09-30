@@ -1,0 +1,66 @@
+{
+  "Name": "WeatherDataETL",
+  "Description": "Fetch hourly weather JSON, normalize, insert into PostgreSQL",
+  "Configuration": {
+    "DegreeOfParallelism": 3,
+    "Timeout": 900000,
+    "ErrorHandling": {
+      "Strategy": "Abort"
+    }
+  },
+  "Tasks": [
+    {
+      "Name": "FetchWeather",
+      "Type": {
+        "plugin": "FlowSynx.Web.HttpRequest",
+        "version": "1.1.1",
+        "Specifications": {
+          "BaseUrl": "https://api.weather.example.com"
+        }
+      },
+      "Parameters": {
+        "Operation": "GET",
+        "Url": "/hourly?city=Berlin",
+        "Headers": { 
+          "Authorization": "Bearer XYZ",
+          "Accept": "application/json" 
+        }
+      },
+      "Position": { "X": 80, "Y": 40 }
+    },
+    {
+      "Name": "Normalize",
+      "Type": {
+        "plugin": "FlowSynx.Data.Json",
+        "version": "1.1.0"
+      },
+      "Dependencies": ["FetchWeather"],
+      "Parameters": {
+        "Operation": "map",
+        "Data": "$[Outputs('FetchWeather')]",
+        "Mappings": { "temp": "$.Temperature", "humidity": "$.Humidity" }
+      },
+      "Position": { "X": 260, "Y": 40 }
+    },
+    {
+      "Name": "LoadPostgreSQL",
+      "Type": {
+        "plugin": "FlowSynx.Database.PostgreSql",
+        "version": "1.1.1",
+        "Specifications": {
+          "ConnectionString": "Host=localhost;Port=5432;Username=postgres;Password=secret;Database=mydb"
+        }
+      },
+      "Dependencies": ["Normalize"],
+      "Parameters": {
+        "Operation": "execute",
+        "Sql": "INSERT INTO HourlyWeather (temp, humidity) VALUES (@temp, @humidity)",
+        "Parameters": {
+          "temp": "$[Outputs('FetchWeather').Content.temp]",
+          "humidity": "$[Outputs('FetchWeather').Content.humidity]"
+        }
+      },
+      "Position": { "X": 440, "Y": 40 }
+    }
+  ]
+}
