@@ -136,7 +136,7 @@ Defines an optional human-in-the-loop step.
 | Key             | Type          | Default | Description                                                        |
 | --------------- | ------------- | ------- | ------------------------------------------------------------------ |
 | `Enabled`       | boolean       | false   | If true, the task waits for human approval before continuing.      |
-| `Approvers`     | array<string> | \[]     | Authorized users or groups who can approve.                        |
+| `Approvers`     | array<string> | `[]`    | Authorized users or groups who can approve.                        |
 | `Instructions`  | string        | ""      | Guidance for approvers.                                            |
 | `DefaultAction` | string        | "abort" | Action if approval is not granted in time (`"abort"` or `"skip"`). |
 

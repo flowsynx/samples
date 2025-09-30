@@ -1,0 +1,85 @@
+{
+  "Name": "NightlyDatabaseBackup",
+  "Description": "Dump PostgreSQL database, compress, and archive to Azure Blob Storage",
+  "Configuration": {
+    "DegreeOfParallelism": 2,
+    "Timeout": 1800000, 
+    "ErrorHandling": {
+      "Strategy": "Retry",
+      "RetryPolicy": {
+        "MaxRetries": 3,
+        "BackoffStrategy": "Exponential",
+        "InitialDelay": 5000,
+        "MaxDelay": 60000,
+        "BackoffCoefficient": 2
+      }
+    }
+  },
+  "Tasks": [
+    {
+      "Name": "PgDump",
+      "Type": {
+        "plugin": "FlowSynx.Database.PostgreSql",
+        "version": "1.1.1",
+        "Specifications": {
+          "ConnectionString": "Host=localhost;Port=5432;Username=postgres;Password=secret;Database=mydb"
+        }
+      },
+      "Parameters": {
+        "Operation": "query",
+        "Sql": "SELECT id, name, email FROM users WHERE country = @country",
+          "Parameters": {
+            "country": "Norway"
+          }
+      },
+      "Position": { "X": 100, "Y": 60 }
+    },
+    {
+      "Name": "CsvExport",
+      "Type": {
+        "plugin": "FlowSynx.Data.Csv",
+        "version": "1.2.0"
+      },
+      "Dependencies": ["PgDump"],
+      "Parameters": {
+        "Operation": "read",
+        "Delimiter": ",",
+        "Data": "$[Outputs('PgDump')]"
+      },
+      "Position": { "X": 300, "Y": 60 }
+    },
+    {
+      "Name": "Compress",
+      "Type": {
+        "plugin": "FlowSynx.Compression.Zip",
+        "version": "1.0.0"
+      },
+      "Dependencies": ["CsvExport"],
+      "Parameters": {
+        "Operation": "compress",
+        "Data": "$[Outputs('CsvExport')]"
+      },
+      "Position": { "X": 500, "Y": 60 }
+    },
+    {
+      "Name": "UploadToAzure",
+      "Type": {
+        "plugin": "FlowSynx.Cloud.Azure.Blobs",
+        "version": "1.1.0",
+        "Specifications": {
+          "AccountName": "myazureaccount",
+          "AccountKey": "abc123xyz456==",
+          "ContainerName": "flowfiles"
+        }
+      },
+      "Dependencies": ["Compress"],
+      "Parameters": {
+        "Operation": "write",
+        "Data": "$[Outputs('Compress')]",
+        "Path": "backups/postgresql.zip",
+        "Overwrite": true
+      },
+      "Position": { "X": 700, "Y": 60 }
+    }
+  ]
+}
