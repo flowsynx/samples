@@ -27,3 +27,4 @@ The `workflows/` directory stores predefined workflow configurations for various
 | [**Basic**](/workflows/basic/)  | Includes minimal JSON-based workflow definition, such as a simple example that writes text to a file. |
 | [**NightlyDatabaseBackup**](/workflows/nightly-database-backup/)  | Includes JSON-based workflow definition for Dump PostgreSQL database, compress, and store it to Azure Blob Storage. |
 | [**WeatherDataETL**](/workflows/weather-data-etl/)  | Fetch hourly weather JSON, normalize, insert into PostgreSQL. |
+| [**ImageProcessingPipeline**](/workflows/image-processing/)  | Load a local image, convert it to grayscale, apply a watermark, and then upload it to Google Cloud Storage. |
