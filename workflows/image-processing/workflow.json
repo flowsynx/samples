@@ -1,6 +1,6 @@
 {
     "Name": "ImageProcessingPipeline",
-    "Description": "Download images, apply watermark, upload to Google Cloud Storage",
+    "Description": "Load a local image, convert it to grayscale, apply a watermark, and then upload it to Google Cloud Storage",
     "Configuration": {
       "DegreeOfParallelism": 3,
       "Timeout": 900000,
@@ -52,11 +52,22 @@
       },
       {
         "Name": "SaveProcessedImage",
-        "Type": "",
+        "Type": {
+            "Plugin": "FlowSynx.Cloud.Google.Storage",
+            "Version": "1.0.0",
+            "Specifications": {
+              "ProjectId": "my-gcp-project",
+              "PrivateKeyId": "abc123xyz456",
+              "PrivateKey": "-----BEGIN PRIVATE KEY-----\nMIIEv...\n-----END PRIVATE KEY-----\n",
+              "ClientEmail": "service-account@my-gcp-project.iam.gserviceaccount.com",
+              "ClientId": "1234567890",
+              "BucketName": "flowfiles"
+            }
+        },
         "Dependencies": ["WatermarkImage"],
         "Parameters": {
           "Operation": "write",
-          "Path": "processed_image.png",
+          "Path": "images/processed_image_01.png",
           "Data": "$[Outputs('WatermarkImage')]",
           "Overwrite": true
         },
