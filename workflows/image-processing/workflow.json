@@ -1,0 +1,66 @@
+{
+    "Name": "ImageProcessingPipeline",
+    "Description": "Download images, apply watermark, upload to Google Cloud Storage",
+    "Configuration": {
+      "DegreeOfParallelism": 3,
+      "Timeout": 900000,
+      "ErrorHandling": {
+        "Strategy": "Abort"
+      }
+    },
+    "Tasks": [
+      {
+        "Name": "LoadImage",
+        "Type": "",
+        "Parameters": {
+          "Operation": "read",
+          "Path": "text_image.png"
+        },
+        "Position": { "X": 80, "Y": 40 }
+      },
+      {
+        "Name": "GrayscaleImage",
+        "Type": {
+          "Plugin": "FlowSynx.Media.ImageProcessing",
+          "Version": "1.1.0"
+        },
+        "Dependencies": ["LoadImage"],
+        "Parameters": {
+          "Operation": "grayscale",
+          "Data": "$[Outputs('LoadImage')]"
+        },
+        "Position": { "X": 120, "Y": 40 }
+      },
+      {
+        "Name": "WatermarkImage",
+        "Type": {
+          "Plugin": "FlowSynx.Media.ImageProcessing",
+          "Version": "1.1.0"
+        },
+        "Dependencies": ["GrayscaleImage"],
+        "Parameters": {
+          "Operation": "watermark",
+          "Data": "$[Outputs('GrayscaleImage')]",
+          "Text": "Sample watermark",
+          "FontName": "Arial",
+          "FontSize": 32,
+          "FontColor": "#FF0000",
+          "Top": 5,
+          "Left": 5
+        },
+        "Position": { "X": 160, "Y": 40 }
+      },
+      {
+        "Name": "SaveProcessedImage",
+        "Type": "",
+        "Dependencies": ["WatermarkImage"],
+        "Parameters": {
+          "Operation": "write",
+          "Path": "processed_image.png",
+          "Data": "$[Outputs('WatermarkImage')]",
+          "Overwrite": true
+        },
+        "Position": { "X": 200, "Y": 40 }
+      }
+    ]
+  }
