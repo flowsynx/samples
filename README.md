@@ -20,7 +20,7 @@ Each subfolder represents a distinct configuration area, making it easy to enabl
 | [**Keycloak\_Auth**](/configuration/keycloak_auth/) | Integrates with **Keycloak** or other OpenID Connect providers for secure authentication and role-based access control. Recommended for production.      |
 
 ### Workflows
-The `workflows/` directory stores predefined workflow configurations for various use cases:
+The `workflows/` directory contains predefined JSON workflow configurations designed for a variety of use cases, such as data processing, automation pipelines, and system integrations. Each workflow file defines a sequence of tasks, dependencies, and execution logic that can be customized or extended as needed.
 
 | Directory   | Description                     |
 |-------------|---------------------------------|
