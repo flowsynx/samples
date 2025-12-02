@@ -6,7 +6,7 @@ Welcome to the FlowSynx Data Samples repository! This directory contains various
 
 The samples provided here are designed to help users understand how to work with FlowSynx and its data processing capabilities. Each dataset is structured to showcase different features and functionalities.
 
-> **Note**: The data samples included in this repository are sourced from [datablist.com](https://datablist.com).
+> **Note**: The data samples included in this repository are sourced from [datablist.com](https://www.datablist.com/learn/csv/download-sample-csv-files).
 
 ## Contents
 
